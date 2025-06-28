@@ -1,8 +1,8 @@
 from tqdm import tqdm
 
-from data_collect.events import get_events_with_details
-from data_collect.topics import get_event_topics
-from data_collect.motions import get_events_motions
+from src.data_collect.events import get_events_with_details
+from src.data_collect.topics import get_event_topics
+from src.data_collect.motions import get_events_motions
 
 tqdm.pandas()
 

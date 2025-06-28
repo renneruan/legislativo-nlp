@@ -1,8 +1,8 @@
 import pandas as pd
 import requests
 
-from utils.date import get_weekly_dates
-from utils.request_wrapper import simple_url_request
+from src.utils.date import get_weekly_dates
+from src.utils.request_wrapper import simple_url_request
 
 
 def get_events(start_date, end_date, itens_per_page=2):

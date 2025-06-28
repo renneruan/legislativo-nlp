@@ -1,8 +1,7 @@
-import time
 from bs4 import BeautifulSoup
 
 from urllib.parse import urlparse, parse_qs
-from utils.request_wrapper import html_url_request
+from src.utils.request_wrapper import html_url_request
 
 
 def get_topics_url(event_detail):

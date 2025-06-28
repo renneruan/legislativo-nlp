@@ -5,7 +5,7 @@ import os
 
 from pdfminer.high_level import extract_text
 
-from utils.request_wrapper import simple_url_request, pdf_url_request
+from src.utils.request_wrapper import simple_url_request, pdf_url_request
 
 tqdm.pandas()
 
