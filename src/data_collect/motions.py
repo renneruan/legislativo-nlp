@@ -71,7 +71,11 @@ def download_motions(motions_df, output_dir="data/motions"):
     pdf_texts = []
     for _, row in tqdm(motions_df.iterrows(), total=len(motions_df)):
         pdf_url = row.get("pdf_url")
-        motion_id = row.get("id")
+        motion_id = (
+            row.get("titulo").replace(" ", "_").replace("/", "_")
+            if row.get("titulo")
+            else "sem_titulo"
+        )
 
         if not pdf_url or not isinstance(pdf_url, str):
             print(f"PDF URL inválido ou ausente para {motion_id}.")

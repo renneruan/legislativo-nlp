@@ -5,7 +5,7 @@ from src.utils.date import get_weekly_dates
 from src.utils.request_wrapper import simple_url_request
 
 
-def get_events(start_date, end_date, itens_per_page=2):
+def get_events(start_date, end_date, itens_per_page=100):
     url = "https://dadosabertos.camara.leg.br/api/v2/eventos"
     headers = {"Accept": "application/json"}
 
