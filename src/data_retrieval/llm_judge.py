@@ -62,7 +62,7 @@ def get_openai_judgment(
 
         judgment = json.loads(response.choices[0].message.content)
 
-        print(judgment)
+        # print(judgment)
         return judgment
 
     except Exception as e:
@@ -74,7 +74,7 @@ def filter_and_rerank_with_llm(
     initial_results: dict,
     query_text: str,
     client: openai.OpenAI,
-    relevance_threshold: int = 5,
+    relevance_threshold: int = 4,
 ) -> list:
     """
     Recebe os resultados brutos do ChromaDB, usa o LLM para julgá-los,
@@ -94,21 +94,21 @@ def filter_and_rerank_with_llm(
 
     validated_results = []
     if initial_results.get("ids") and initial_results["ids"][0]:
-        print(f"Analisando {len(initial_results['ids'][0])} resultados.")
+        # print(f"Analisando {len(initial_results['ids'][0])} resultados.")
 
         for i, doc_id in enumerate(initial_results["ids"][0]):
             document_text = initial_results["documents"][0][i]
             judgment = get_openai_judgment(query_text, document_text, client)
 
-            print(
-                f"ID: {doc_id[:30]}... | Score do Juiz: {judgment.get(
-                    'score', 0
-                )}"
-            )
+            # print(
+            #     f"ID: {doc_id[:30]}... | Score do Juiz: {judgment.get(
+            #         'score', 0
+            #     )}"
+            # )
 
             if judgment.get("score", 0) >= relevance_threshold:
                 result_item = {
-                    "id": doc_id,
+                    "id": initial_results["metadatas"][0][i]["motion_id"],
                     "document": document_text,
                     "metadata": initial_results["metadatas"][0][i],
                     "distance": initial_results["distances"][0][i],
@@ -119,7 +119,7 @@ def filter_and_rerank_with_llm(
 
     validated_results.sort(key=lambda x: x["llm_score"], reverse=True)
 
-    print(
-        f"{len(validated_results)} resultados finais após filtro e re-ranking"
-    )
+    # print(
+    #     f"{len(validated_results)} resultados finais após filtro e re-ranking"
+    # )
     return validated_results

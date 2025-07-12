@@ -18,7 +18,7 @@ from src.data_preprocess.embedding_store import save_embeddings_to_chroma
 tqdm.pandas()
 
 
-def main():
+def collect_and_build_data():
     # events_df = get_events_with_details()
     # events_df["topics"] = events_df["details"].progress_apply(get_event_topics)
 
@@ -61,4 +61,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    collect_and_build_data()
