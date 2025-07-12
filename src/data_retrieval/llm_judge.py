@@ -1,4 +1,3 @@
-import os
 import json
 import openai
 
@@ -30,9 +29,12 @@ def get_openai_judgment(
 
     Critérios de Pontuação:
     - 10: Relevância Direta: O documento tem aderência perfeita ao pesquisado.
-    - 7-9: Relevância Alta: O documento trata do tópico principal que foi pesquisado.
-    - 4-6: Relevância Parcial: O documento menciona o tópico, mas de forma secundária.
-    - 1-3: Relevância Baixa: O documento contém apenas palavras-chave em outro contexto.
+    - 7-9: Relevância Alta: O documento trata do tópico principal
+      que foi pesquisado.
+    - 4-6: Relevância Parcial: O documento menciona o tópico,
+      mas de forma secundária.
+    - 1-3: Relevância Baixa: O documento contém apenas palavras-chave
+      em outro contexto.
     - 0: Irrelevante.
     """
 
@@ -43,7 +45,8 @@ def get_openai_judgment(
     Texto do Documento:
     "{document_text}"
 
-    Sua Avaliação (responda APENAS em formato JSON com as chaves "score" e "justificativa"):
+    Sua Avaliação (responda APENAS em formato JSON com as chaves
+      "score" e "justificativa"):
     """
 
     try:
@@ -81,10 +84,12 @@ def filter_and_rerank_with_llm(
         initial_results: O dicionário de resultados da consulta ao ChromaDB.
         query_text: O texto da busca original do usuário.
         client: Uma instância do cliente da OpenAI.
-        relevance_threshold: A nota de corte para considerar um resultado relevante.
+        relevance_threshold: A nota de corte para considerar
+          um resultado relevante.
 
     Returns:
-        Uma lista de dicionários, contendo os resultados validados e reordenados.
+        Uma lista de dicionários, contendo os resultados
+          validados e reordenados.
     """
 
     validated_results = []
@@ -96,7 +101,9 @@ def filter_and_rerank_with_llm(
             judgment = get_openai_judgment(query_text, document_text, client)
 
             print(
-                f"ID: {doc_id[:30]}... | Score do Juiz: {judgment.get('score', 0)}"
+                f"ID: {doc_id[:30]}... | Score do Juiz: {judgment.get(
+                    'score', 0
+                )}"
             )
 
             if judgment.get("score", 0) >= relevance_threshold:

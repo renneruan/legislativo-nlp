@@ -65,8 +65,7 @@ if __name__ == "__main__":
 
     ementa_results, pdf_results = search_motions(query)
 
-    if False:
-
+    if os.getenv("OPENAI_API_KEY"):
         client_openai = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         ementa_results_reranked = filter_and_rerank_with_llm(
