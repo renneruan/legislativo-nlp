@@ -2,3 +2,4 @@ __pycache__
 
 data/motions/*.pdf
 *.csv
+artifacts/

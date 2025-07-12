@@ -1,0 +1,23 @@
+import chromadb
+
+
+def save_embeddings_to_chroma(embeddings_df):
+    client = chromadb.PersistentClient(path="artifacts/chroma_db")
+
+    ementas_collection = client.get_or_create_collection("ementas")
+    pdf_collection = client.get_or_create_collection("pdfs")
+
+    for _, row in embeddings_df.iterrows():
+        ementas_collection.add(
+            documents=[row["ementa_limpa"]],
+            embeddings=[row["hidden_state_ementa"].tolist()],
+            metadatas={"motion_id": row["motion_id"], "source": "ementa"},
+            ids=[str(row["motion_id"]) + "_ementa"],
+        )
+
+        pdf_collection.add(
+            documents=[row["pdf_text_limpo"]],
+            embeddings=[row["hidden_state_pdf"].tolist()],
+            metadatas={"motion_id": row["motion_id"], "source": "pdf"},
+            ids=[str(row["motion_id"]) + "_pdf"],
+        )

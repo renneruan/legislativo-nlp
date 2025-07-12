@@ -28,7 +28,7 @@ def get_topics_url(event_detail):
             cleaned_links[texto] = link
 
         if "Pauta" in cleaned_links:
-            print(f"Pauta base resgatada {cleaned_links["Pauta"]}")
+            print(f'Pauta base resgatada {cleaned_links["Pauta"]}')
             return cleaned_links["Pauta"]
         else:
             print(f"Falha: Evento de url {event_url} sem pauta")
