@@ -21,23 +21,25 @@ tqdm.pandas()
 def collect_and_build_data():
 
     try:
-        # events_df = get_events_with_details()
-        # events_df["topics"] = events_df["details"].progress_apply(get_event_topics)
+        events_df = get_events_with_details()
+        events_df["topics"] = events_df["details"].progress_apply(
+            get_event_topics
+        )
 
-        # os.makedirs("data/datasets/raw", exist_ok=True)
-        # os.makedirs("data/datasets/cleaned", exist_ok=True)
-        # os.makedirs("data/datasets/embeddings", exist_ok=True)
+        os.makedirs("data/datasets/raw", exist_ok=True)
+        os.makedirs("data/datasets/cleaned", exist_ok=True)
+        os.makedirs("data/datasets/embeddings", exist_ok=True)
 
-        # events_df.to_csv(
-        #     "data/datasets/raw/events_with_topics.csv",
-        #     index=False,
-        #     encoding="utf-8-sig",
-        # )
+        events_df.to_csv(
+            "data/datasets/raw/events_with_topics.csv",
+            index=False,
+            encoding="utf-8-sig",
+        )
 
-        # motions = get_events_motions(events_df)
-        # motions.to_csv(
-        #     "data/datasets/raw/motions.csv", index=False, encoding="utf-8-sig"
-        # )
+        motions = get_events_motions(events_df)
+        motions.to_csv(
+            "data/datasets/raw/motions.csv", index=False, encoding="utf-8-sig"
+        )
 
         motions = pd.read_csv(
             "data/datasets/raw/motions.csv", encoding="utf-8-sig"
