@@ -45,6 +45,8 @@ legislativo-nlp/
 └── README.md
 ```
 
+Se torna necessário possuir um .env para utilização do LLM como Juiz.
+
 ## Metodologia
 
 O desenvolvimento seguiu as fases do ciclo de vida **CRISP-DM (Cross-Industry Standard Process for Data Mining)**, desde o entendimento do problema até a avaliação formal dos resultados e a estruturação para um potencial deploy. Mesmo não seguindo uma abordagem de Machine Learning usual, em que se ocorre um treinamento de um modelo a partir de dados tabulares, temos a etapa de Modelagem atrelada a escolha do modelo de embedding utilizado. Foi uma abordagem de projeto iterativa e cíclica, onde foi preciso retornar em diversas etapas modificando e melhorando as estruturas.
@@ -80,6 +82,8 @@ pip install -r requirements.txt
 
 ## Como Executar o Projeto
 
+É recomendado que os 2 primeiros passos sejam feitos utilizando a interface disposta pelo servidor web, onde poderá ser melhor visualizado os resultados.
+
 **1. Resgate dos Dados e construção do Banco de Dados Vetorial**
 
 Execute o script `src/build.py` para coletar, pré-processar e criar os dados no banco ChromaDB.
@@ -108,7 +112,7 @@ Para iniciar o servidor web, execute o arquivo `app.py` a partir do diretório r
 python app.py
 ```
 
-O servidor estará disponível em `http://localhost:8080`.
+A página HTML gerada estará disponível em `http://localhost:8080`.
 
 **b) Endpoints da API**
 
