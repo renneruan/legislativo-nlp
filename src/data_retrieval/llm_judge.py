@@ -24,18 +24,21 @@ def get_openai_judgment(
     system_prompt = """
     Você é um analista legislativo sênior, especialista em interpretar
     a relevância de documentos da Câmara dos Deputados. Sua tarefa é
-    avaliar o quão bem um documento responde a uma pergunta de um usuário,
+    avaliar o quão bem um documento adere a um termo de pesquisa do usuário,
     fornecendo uma nota de 0 a 10.
 
+    Tente também avaliar se o que é presente no documento está dentro do mesmo
+    macro tema, ou tem intereseccionalidades com o termo pesquisado.
+
     Critérios de Pontuação:
-    - 10: Relevância Direta: O documento tem aderência perfeita ao pesquisado.
+    - 10: Relevância Direta: O documento tem aderência perfeita ao termo pesquisado.
     - 7-9: Relevância Alta: O documento trata do tópico principal
-      que foi pesquisado.
-    - 4-6: Relevância Parcial: O documento menciona o tópico,
-      mas de forma secundária.
-    - 1-3: Relevância Baixa: O documento contém apenas palavras-chave
-      em outro contexto.
-    - 0: Irrelevante.
+      que foi pesquisado, ou temáticas inerentes a ele.
+    - 5-6: Relevância Parcial: O documento menciona o tópico,
+      mas de forma secundária, e possui foco em outro contexto.
+    - 2-4: Relevância Baixa: O documento contém poucas ou nenhuma palavras-chave
+      relativo ao termo pesquisado.
+    - 0-1: Irrelevante.
     """
 
     user_prompt = f"""
@@ -62,7 +65,7 @@ def get_openai_judgment(
 
         judgment = json.loads(response.choices[0].message.content)
 
-        # print(judgment)
+        print(judgment)
         return judgment
 
     except Exception as e:
@@ -74,7 +77,7 @@ def filter_and_rerank_with_llm(
     initial_results: dict,
     query_text: str,
     client: openai.OpenAI,
-    relevance_threshold: int = 4,
+    relevance_threshold: int = 7,
 ) -> list:
     """
     Recebe os resultados brutos do ChromaDB, usa o LLM para julgá-los,

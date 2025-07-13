@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="static/css/style.css" media="screen" />
+    <title>Pautas Legislativas</title>
+</head>
+
+<body>
+    <div id="loader-overlay" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="text-align: center;">
+            <!-- The animated spinner -->
+            <div class="spinner" style="margin-left: auto; margin-right: auto;"></div>
+            <!-- The message container -->
+            <p id="loader-message" style="margin-top: 1rem; color: white; font-size: 1.125rem; font-weight: 500;">
+                Carregando...
+            </p>
+        </div>
+    </div>
+
+    <nav class="px-lg2 px-2 navbar navbar-expand-lg navbar-dark sticky-top">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+
+    <div class="overlay"></div>
+
+    <div id="form-prediction" class="text-center row d-flex flex-column" style="flex: 1;">
+                <div class="container mt-5 center col-lg-8 col-md-10">
+            <h2 class="mt-4 mb-4">Recuperador de Eventos Legislativos</h2>
+            <p class="mb-2">Para pesquisar se determinado evento em pauta possui aderência a determinado
+                tema, é necessário previamente montar a base de dados a partir dos dados da Câmara dos Deputados. Para isso basta apertar no botão a seguir. </p>
+            <div class="col-12 text-center">
+                <button type="button" class="btn btn-primary" id="build-data">Montar Base de Dados</button>
+                <div id="status-message" class="mt-3 fw-bold"></div>
+            </div>
+        </div>
+
+        <hr class="my-4 mx-auto" style="width: 80%;">
+
+        <div id="retrieval-section" class="container col-lg-8 col-md-10">
+            <p class="mb-3">Após a base de dados ser montada, digite um tema para buscar as pautas relacionadas.</p>
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="input-group mb-3">
+                        <input type="text" id="search-query" class="form-control form-control-lg" placeholder="Ex: violência contra a mulher, reforma tributária...">
+                        <button class="btn btn-success" type="button" id="retrieve-data">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-container" class="container col-lg-8 col-md-10 mt-4 text-start">
+        </div>
+
+    </div>
+
+    <footer class="bg-dark text-white text-center py-2">
+        <p class="mb-0">&copy; 2024 Rennê Oliveira.</p>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+         function displayResults(results) {
+            const resultsContainer = $("#results-container");
+            resultsContainer.empty(); // Limpa resultados anteriores
+
+            if (!results || results.length === 0) {
+                resultsContainer.html('<div class="alert alert-info text-center">Nenhum resultado encontrado para a sua busca.</div>');
+                return;
+            }
+
+            // Itera sobre cada resultado e cria um card para ele
+            results.forEach(result => {
+                // Adapte as propriedades (ex: result.ementa, result.proposicao_nome) conforme o retorno da sua API
+                const resultCard = `
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">${result.proposicao_nome || 'Título não disponível'}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">ID: ${result.motion_id || 'N/A'}</h6>
+                            <p class="card-text" style="text-align: justify;">${result.ementa || 'Ementa não disponível.'}</p>
+                            <a href="${result.proposicao_url || '#'}" target="_blank" class="btn btn-sm btn-outline-primary">Ver detalhes da Proposição</a>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.append(resultCard);
+            });
+        }
+
+        function showLoader(message = 'Aguarde, por favor...') {
+            $("#loader-message").text(message);
+            $("#loader-overlay").css("display", "flex"); // Use flex to center content
+        }
+
+        function hideLoader() {
+            $("#loader-overlay").hide();
+        }
+
+        function displayResults(resultsObject) {
+            const resultsContainer = $("#results-container");
+            resultsContainer.empty(); // Limpa resultados anteriores
+
+            const results = Object.values(resultsObject); // Converte o objeto em uma lista de resultados
+
+            if (!results || results.length === 0) {
+                resultsContainer.html('<div class="alert alert-info text-center">Nenhum resultado encontrado para a sua busca.</div>');
+                return;
+            }
+
+            console.log(results)
+            events = results[0];
+            console.log(events)
+            // Itera sobre cada resultado e cria um card para ele
+            Object.values(events).forEach(result => {
+                // Define a cor do badge com base no status do evento
+                const status = result.event_status || 'Indefinido';
+                let statusColor = 'bg-secondary';
+                if (status.toLowerCase() === 'Convocada') {
+                    statusColor = 'bg-success';
+                } else if (status.toLowerCase() === 'Agendada') {
+                    statusColor = 'bg-info text-dark';
+                } else if (status.toLowerCase().includes('Realizada')) {
+                    statusColor = 'bg-primary';
+                }
+
+                // Limpa a descrição do evento para melhor exibição
+                const eventDescription = (result.event_description || '').replace(/\r\n/g, '<br>');
+
+                const resultCard = `
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center flex-wrap">
+                            <h5 class="card-title mb-1 me-2">Requerimento ${result.titulo || 'Título não disponível'} | Evento ${result.event_id || 'ID não disponível'} </h5>
+                            <span class="badge ${statusColor} rounded-pill">${status}</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text" style="text-align: justify;"><strong>Ementa:</strong> ${result.ementa || 'Não disponível.'}</p>
+                            <p class="card-text" style="text-align: justify;"><strong>Descrição do Evento:</strong> ${result.event_description || 'Não disponível.'}</p>
+                        </div>
+                        <div class="card-footer bg-white text-end">
+                             <a href="${result.pdf_url || '#'}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-file-pdf me-1"></i>Ver PDF
+                            </a>
+                            <a href="https://www.camara.leg.br/evento-legislativo/${result.event_id || '#'}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-link me-1"></i>Acessar URL
+                            </a>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.append(resultCard);
+            });
+        }
+
+
+        $(document).ready(function () {
+            $("#build-data").click(function () {
+
+                showLoader("Montando a base de dados, por favor aguarde, esta etapa pode demorar devido a criação de embeddings...");
+                $("#status-message").empty().removeClass('text-success text-danger');
+
+
+                $.ajax({
+                    type: "POST",
+                    url: "/build_data",
+                    success: function (response) {
+                        console.log("chroma db montado");
+                            // Optionally, show a success message before hiding
+                        showLoader("Base de dados montada com sucesso!");
+                        setTimeout(hideLoader, 2000); // Wait 2 seconds
+                        $("#status-message")
+                            .text("Base de dados montada com sucesso!")
+                            .addClass('text-success');
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("ERRO AO MONTAR");
+                        // Optionally, show an error message
+                        showLoader("Ocorreu um erro!");
+                        setTimeout(hideLoader, 2000);
+                        $("#status-message")
+                            .text("Ocorreu um erro ao montar a base de dados. Tente novamente.")
+                            .addClass('text-danger');
+                    },
+                    complete: function () {
+                        // 2. Hide the loader after the request is complete (whether it succeeded or failed)
+                        hideLoader();
+                    }
+                });
+            });
+
+            $("#retrieve-data").click(function () {
+                const query = $("#search-query").val();
+                if (!query.trim()) {
+                    alert("Por favor, digite um tema para a busca.");
+                    return;
+                }
+                $("#results-container").empty();
+                showLoader("Buscando pautas relacionadas...");
+
+                $.ajax({
+                    type: "POST",
+                    url: "/retrieve",
+                    contentType: "application/json",
+                    data: JSON.stringify({ query: query }),
+                    success: function (response) {
+                        displayResults(response);
+                    },
+                    error: function (xhr, status, error) {
+                        $("#results-container").html('<div class="alert alert-danger text-center">Ocorreu um erro ao buscar os resultados. Tente novamente.</div>');
+                    },
+                    complete: function () {
+                        hideLoader();
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
