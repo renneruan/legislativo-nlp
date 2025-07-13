@@ -3,6 +3,8 @@ import numpy as np
 
 from typing import List, Dict, Tuple
 
+from src.data_preprocess.feature_engineering import create_embeddings
+from src.data_preprocess.embedding_store import save_embeddings_to_chroma
 from src.data_retrieval.similarity_retriever import retrieve_by_query
 
 K_FOR_METRICS = 5  # Vamos calcular a Precision@K e Recall@K para K=8
@@ -51,11 +53,20 @@ def compute_metrics(
 
 
 def evaluate_variant(
-    query: str, relevant_ids: List[str], use_llm: bool, k: int
+    query: str,
+    relevant_ids: List[str],
+    use_llm: bool,
+    k: int,
+    model: str,
+    model_cpkt: str,
 ) -> Tuple[str, Dict[str, float]]:
 
     results_ementa, results_pdf = retrieve_by_query(
-        query, n_results=k, use_llm_judge=use_llm
+        query,
+        n_results=k,
+        use_llm_judge=use_llm,
+        model=model,
+        model_cpkt=model_cpkt,
     )
 
     if use_llm:
@@ -86,7 +97,10 @@ def evaluate_variant(
 
 
 def run_evaluation(
-    golden_dataset: pd.DataFrame,
+    gt_df: pd.DataFrame,
+    cleaned_df,
+    embedding_key: str,
+    embedding_model: str,
 ) -> Dict[str, Dict[str, float]]:
     """
     Executa o processo de avaliação completo em diferentes variantes:
@@ -95,17 +109,28 @@ def run_evaluation(
     - ementa+pdf
     - com/sem LLM juiz
     """
+
+    motions_with_embeddings_df = create_embeddings(cleaned_df, embedding_model)
+    ementas_size, pdf_size = save_embeddings_to_chroma(
+        motions_with_embeddings_df, embedding_key
+    )
+
     all_metrics = {}
     USE_JUDGE = [False, True]
 
-    for _, row in golden_dataset.iterrows():
+    for _, row in gt_df.iterrows():
         query = row["query"]
         relevant_ids = eval(row["relevant_motion_ids"])
         print(f"\nAvaliando a Query: '{query}'")
 
         for use_llm in USE_JUDGE:
             metrics = evaluate_variant(
-                query, relevant_ids, use_llm, K_FOR_METRICS
+                query,
+                relevant_ids,
+                use_llm,
+                K_FOR_METRICS,
+                embedding_key,
+                embedding_model,
             )
 
             for obj in metrics:
@@ -129,11 +154,6 @@ def run_evaluation(
 
 
 def display_results(metrics: dict):
-    """Apresenta os resultados finais em um formato legível."""
-    print("\n\n" + "=" * 60)
-    print("           RESULTADO FINAL DA AVALIAÇÃO")
-    print("=" * 60)
-
     df = pd.DataFrame(metrics).round(3)
     print(df)
 

@@ -1,8 +1,19 @@
 import chromadb
+from chromadb.errors import NotFoundError
 
 
-def save_embeddings_to_chroma(embeddings_df):
-    client = chromadb.PersistentClient(path="artifacts/chroma_db")
+def save_embeddings_to_chroma(embeddings_df, embedding_key="portuguese-bert"):
+    client = chromadb.PersistentClient(
+        path=f"artifacts/chroma_db_{embedding_key}"
+    )
+
+    try:
+        client.delete_collection(name="ementas")
+        client.delete_collection(name="pdfs")
+        print(f"INFO: Coleção limpa para ChromaDB '{embedding_key}'.")
+    except NotFoundError:
+        # Caso já exista, só ignora
+        pass
 
     ementas_collection = client.get_or_create_collection("ementas")
     pdf_collection = client.get_or_create_collection("pdfs")

@@ -65,7 +65,6 @@ def get_openai_judgment(
 
         judgment = json.loads(response.choices[0].message.content)
 
-        print(judgment)
         return judgment
 
     except Exception as e:

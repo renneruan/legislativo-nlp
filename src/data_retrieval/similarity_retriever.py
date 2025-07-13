@@ -1,48 +1,38 @@
 import os
 import chromadb
-import torch
 import openai
+import pandas as pd
+
+from datasets import Dataset
 
 from dotenv import load_dotenv
 
-from transformers import (
-    AutoModel,
-    AutoTokenizer,
-)
-
 from src.data_retrieval.llm_judge import filter_and_rerank_with_llm
+from src.data_preprocess.feature_engineering import extract_semantic_features
 
 
-model_ckpt = "neuralmind/bert-base-portuguese-cased"
-tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = AutoModel.from_pretrained(model_ckpt).to(device)
-
-
-def create_query_embedding(text: str):
+def create_query_embedding(text: str, model_cpkt: str):
     """
     Gera o embedding para a consulta de texto.
     """
-    inputs = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True,
-        padding=True,
-        max_length=512,
+    query_dataset = Dataset.from_pandas(pd.DataFrame([{"query": text}]))
+
+    query_embedding_df = extract_semantic_features(
+        motions_dataset=query_dataset,
+        column_name="query",
+        model_ckpt=model_cpkt,
     )
-    inputs = {k: v.to(device) for k, v in inputs.items()}
+    query_embedding = query_embedding_df["hidden_state"].iloc[0].tolist()
 
-    with torch.no_grad():
-        outputs = model(**inputs)
-        embedding = outputs.last_hidden_state[:, 0].cpu().numpy()
-
-    return embedding.tolist()
+    return query_embedding
 
 
-def search_motions(query_text: str, n_results: int):
-    query_embedding = create_query_embedding(query_text)
+def search_motions(
+    query_text: str, n_results: int, model: str, model_cpkt: str
+):
+    query_embedding = create_query_embedding(query_text, model_cpkt)
 
-    client = chromadb.PersistentClient(path="artifacts/chroma_db")
+    client = chromadb.PersistentClient(path=f"artifacts/chroma_db_{model}")
 
     ementas_collection = client.get_collection(name="ementas")
     pdf_collection = client.get_collection(name="pdfs")
@@ -58,10 +48,18 @@ def search_motions(query_text: str, n_results: int):
     return ementa_results, pdf_results
 
 
-def retrieve_by_query(query, n_results, use_llm_judge=True):
+def retrieve_by_query(
+    query,
+    n_results,
+    use_llm_judge=True,
+    model="portuguese-bert",
+    model_cpkt="neuralmind/bert-base-portuguese-cased",
+):
     load_dotenv()
 
-    ementa_results, pdf_results = search_motions(query, n_results)
+    ementa_results, pdf_results = search_motions(
+        query, n_results, model, model_cpkt
+    )
 
     if use_llm_judge and os.getenv("OPENAI_API_KEY"):
         client_openai = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

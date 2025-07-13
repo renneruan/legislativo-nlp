@@ -5,40 +5,45 @@ from transformers import (
 )
 from datasets import Dataset
 
-model_ckpt = "neuralmind/bert-base-portuguese-cased"
-tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = AutoModel.from_pretrained(model_ckpt).to(device)
 
 
-def tokenize(batch, text_column):
-    texts = [str(text) for text in batch[text_column]]
+def extract_semantic_features(
+    motions_dataset,
+    column_name,
+    model_ckpt,
+):
 
-    # Caso acima de 512 (limite de entrada do distilBERT trunca-se os dados)
-    encodings = tokenizer(texts, padding=True, truncation=True, max_length=512)
+    tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
+    model = AutoModel.from_pretrained(model_ckpt).to(device)
 
-    return encodings
+    def tokenize(batch, text_column):
+        texts = [str(text) for text in batch[text_column]]
 
+        # Caso acima de 512 (limite de entrada, após ele trunca-se os dados)
+        encodings = tokenizer(
+            texts, padding=True, truncation=True, max_length=512
+        )
 
-def extract_hidden_states(batch):
-    # Repassa entradas do modelo para o dispositivo (GPU ou CPU)
-    inputs = {
-        k: v.to(device)
-        for k, v in batch.items()
-        if k in tokenizer.model_input_names
-    }
+        return encodings
 
-    with torch.no_grad():  # Congela o modelo BERT, para que não seja treinado
-        # Queremos apenas obter o resultado da última camada oculta
-        # Pois ela apresenta informações mais ricas após a passagem pelas
-        # camadas do modelo.
-        last_hidden_state = model(**inputs).last_hidden_state
+    def extract_hidden_states(batch):
+        # Repassa entradas do modelo para o dispositivo (GPU ou CPU)
+        inputs = {
+            k: v.to(device)
+            for k, v in batch.items()
+            if k in tokenizer.model_input_names
+        }
 
-    # Retornamos os valores como um array Numpy
-    return {"hidden_state": last_hidden_state[:, 0].cpu().numpy()}
+        with torch.no_grad():  # Congela o modelo, para que não seja treinado
+            # Queremos apenas obter o resultado da última camada oculta
+            # Pois ela apresenta informações mais ricas após a passagem pelas
+            # camadas do modelo.
+            last_hidden_state = model(**inputs).last_hidden_state
 
+        # Retornamos os valores como um array Numpy
+        return {"hidden_state": last_hidden_state[:, 0].cpu().numpy()}
 
-def extract_semantic_features(motions_dataset, column_name):
     text_encoded = motions_dataset.map(
         tokenize,
         batched=True,
@@ -50,17 +55,22 @@ def extract_semantic_features(motions_dataset, column_name):
 
     df_embbeding = hidden_features.to_pandas()
 
-    return df_embbeding[["motion_id", "hidden_state"]]
+    if "motion_id" in df_embbeding.columns:
+        return df_embbeding[["motion_id", "hidden_state"]]
+    else:
+        return df_embbeding[["hidden_state"]]
 
 
-def create_embeddings(motions_df):
+def create_embeddings(
+    motions_df, embedding_model="neuralmind/bert-base-portuguese-cased"
+):
     motions_dataset = Dataset.from_pandas(motions_df)
 
     ementa_embeddigns = extract_semantic_features(
-        motions_dataset, "ementa_limpa"
+        motions_dataset, "ementa_limpa", embedding_model
     )
     pdf_embeddings = extract_semantic_features(
-        motions_dataset, "pdf_text_limpo"
+        motions_dataset, "pdf_text_limpo", embedding_model
     )
 
     motions_with_embeddings = motions_df.merge(
