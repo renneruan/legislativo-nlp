@@ -1,7 +1,11 @@
 import spacy
+import spacy.cli
 
-# !python -m spacy download pt_core_news_sm
-nlp = spacy.load("pt_core_news_sm")
+try:
+    nlp = spacy.load("pt_core_news_sm")
+except OSError:
+    spacy.cli.download("pt_core_news_sm")
+    nlp = spacy.load("pt_core_news_sm")
 
 custom_motions_stopwords = [
     # Termos Formais e Estruturais
