@@ -114,6 +114,13 @@ python app.py
 
 A página HTML gerada estará disponível em `http://localhost:8080`.
 
+A seguir temos um vídeo exemplificando o uso, assim como o resultado da busca. Algumas partes do vídeo foram recortadas para minimizar o tempo de espera para criação do banco por exemplo, é pensado que esta etapa seja feita por um orquestrador em um ambiente com GPU, uma vez que ela envolve coleta de dados e técnicas de Deep Learning, acelerando o processo e permitindo o uso facilitado após criação.
+
+
+https://github.com/user-attachments/assets/b9f9de7e-cbc5-47e0-af67-c0a8512229fc
+
+
+
 **b) Endpoints da API**
 
 A API expõe os seguintes endpoints:
